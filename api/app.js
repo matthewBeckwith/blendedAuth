@@ -6,9 +6,11 @@ const logger = require('morgan');
 const passport = require('passport');
 const cookieSession = require('cookie-session');
 require('./utilities/passport_setup');
+require('dotenv').config();
 
 const indexRouter = require('./routes/index');
 const firebaseRouter = require('./routes/firebaseRoutes');
+const googleRouter = require('./routes/gcloudRoutes');
 
 const app = express();
 
@@ -27,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2']
+  keys: [process.env.COOKIE_KEY_1, process.env.COOKIE_KEY_1]
 }));
 
 app.use(passport.initialize());
@@ -35,17 +37,18 @@ app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/dashboard', isLoggedIn, isRegistered, firebaseRouter);
+app.use('/google', isLoggedIn, googleRouter);
 
 app.get('/google-auth',
   passport.authenticate('google', {
     scope: [
-      'https://www.googleapis.com/auth/calendar',
-      'https://www.googleapis.com/auth/contacts',
-      'https://www.googleapis.com/auth/documents',
-      'https://www.googleapis.com/auth/drive.activity.readonly',
-      'https://mail.google.com/',
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/userinfo.profile'
+      process.env.GOOGLE_SCOPE_GMAIL,
+      process.env.GOOGLE_SCOPE_DRIVE,
+      process.env.GOOGLE_SCOPE_DOCUMENTS,
+      process.env.GOOGLE_SCOPE_CONTACTS,
+      process.env.GOOGLE_SCOPE_CALENDAR,
+      process.env.GOOGLE_SCOPE_SHEETS,
+      process.env.GOOGLE_SCOPE_GPLUS
     ]
   }));
 app.get('/google-auth/callback',
